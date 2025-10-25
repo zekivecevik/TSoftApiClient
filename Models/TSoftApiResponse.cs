@@ -16,52 +16,101 @@ namespace TSoftApiClient.Models
     }
 
     /// <summary>
-    /// Ürün modeli - Geliştirilmiş versiyon
+    /// Ürün modeli - CRITICAL: TÜM ALANLAR STRING!
+    /// T-Soft API numeric değerleri string olarak döndürüyor
     /// </summary>
     public class Product
     {
-        // Temel bilgiler
+        // IDs - STRING
+        public string? ProductId { get; set; }
         public string? ProductCode { get; set; }
+
+        // Basic Info
         public string? ProductName { get; set; }
         public string? DefaultCategoryCode { get; set; }
-        public string? Stock { get; set; }
-        public string? SellingPrice { get; set; }
-        public string? IsActive { get; set; }
-        public string? StockUnit { get; set; }
-        public string? Brand { get; set; }
-        public string? Vat { get; set; }
-        public string? Currency { get; set; }
-        public string? BuyingPrice { get; set; }
-        public string? ShortDescription { get; set; }
-        public string? Price { get; set; }
+        public string? DefaultCategoryId { get; set; }
+        public string? DefaultCategoryName { get; set; }
+        public string? DefaultCategoryPath { get; set; }
 
-        // Görsel bilgileri
+        // Stock - STRING
+        public string? Stock { get; set; }
+        public string? StockUnit { get; set; }
+        public string? StockUnitId { get; set; }
+
+        // Status
+        public string? IsActive { get; set; }
+        public string? IsApproved { get; set; }
+        public string? ComparisonSites { get; set; }
+        public string? HasSubProducts { get; set; }
+        public string? HasImages { get; set; }
+
+        // Prices - ALL STRING!
+        public string? Price { get; set; }
+        public string? BuyingPrice { get; set; }
+        public string? SellingPrice { get; set; }
+        public string? SellingPriceVatIncluded { get; set; }
+        public string? SellingPriceVatIncludedNoDiscount { get; set; }
+        public string? DiscountedSellingPrice { get; set; }
+        public string? Vat { get; set; }
+        public string? CurrencyId { get; set; }
+        public string? Currency { get; set; }
+
+        // Brand & Model
+        public string? Brand { get; set; }
+        public string? BrandId { get; set; }
+        public string? BrandLink { get; set; }
+        public string? Model { get; set; }
+        public string? ModelId { get; set; }
+
+        // Supplier
+        public string? SupplierId { get; set; }
+        public string? SupplierProductCode { get; set; }
+
+        // Product Details
+        public string? Barcode { get; set; }
+        public string? Description { get; set; }
+        public string? ShortDescription { get; set; }
+        public string? SearchKeywords { get; set; }
+        public string? SeoLink { get; set; }
+
+        // Display Settings
+        public string? DisplayOnHomepage { get; set; }
+        public string? IsNewProduct { get; set; }
+        public string? OnSale { get; set; }
+        public string? IsDisplayProduct { get; set; }
+        public string? VendorDisplayOnly { get; set; }
+        public string? DisplayWithVat { get; set; }
+        public string? CustomerGroupDisplay { get; set; }
+
+        // Additional Fields
+        public string? Additional1 { get; set; }
+        public string? Additional2 { get; set; }
+        public string? Additional3 { get; set; }
+
+        // Images - STRING URLs
         public string? ImageUrl { get; set; }
         public string? ThumbnailUrl { get; set; }
         public string? Image { get; set; }
         public List<ProductImage>? Images { get; set; }
 
-        // Kategori bilgileri
+        // Category Info (for enhanced products)
         public string? CategoryName { get; set; }
         public List<string>? CategoryPath { get; set; }
         public List<string>? Categories { get; set; }
 
-        // Tarih bilgileri
+        // Dates - STRING
         public string? UpdateDate { get; set; }
         public string? UpdateDateTimeStamp { get; set; }
         public string? CreatedDate { get; set; }
         public string? DateCreated { get; set; }
         public string? LastModified { get; set; }
 
-        // Ek bilgiler
-        public string? ProductId { get; set; }
-        public string? Description { get; set; }
-        public string? Barcode { get; set; }
+        // Other
         public string? StockCode { get; set; }
     }
 
     /// <summary>
-    /// Ürün görseli modeli
+    /// Ürün görseli modeli - CRITICAL: TÜM ALANLAR STRING!
     /// </summary>
     public class ProductImage
     {
@@ -75,7 +124,7 @@ namespace TSoftApiClient.Models
         public string? IsPrimary { get; set; }
         public string? IsMain { get; set; }
         public string? IsActive { get; set; }
-        public int? Order { get; set; }
+        public string? Order { get; set; }  // STRING değil int olabilir ama güvenli olsun
         public string? OrderNo { get; set; }
     }
 
@@ -92,8 +141,8 @@ namespace TSoftApiClient.Models
         // Kategori ağacı için
         public string? CategoryId { get; set; }
         public string? ParentCategoryId { get; set; }
-        public int? Level { get; set; }
-        public int? Order { get; set; }
+        public string? Level { get; set; }  // STRING
+        public string? Order { get; set; }  // STRING
         public List<Category>? Children { get; set; }
         public string? Path { get; set; } // "Ana > Alt > Ürün" formatında
     }
@@ -111,11 +160,11 @@ namespace TSoftApiClient.Models
     }
 
     /// <summary>
-    /// Sipariş modeli
+    /// Sipariş modeli - ALL STRINGS
     /// </summary>
     public class Order
     {
-        // Basic Info - ALL STRINGS (API returns them as strings)
+        // Basic Info - ALL STRINGS
         public string? Id { get; set; }
         public string? OrderId { get; set; }
         public string? OrderCode { get; set; }
@@ -192,7 +241,7 @@ namespace TSoftApiClient.Models
         public string? WaybillNumber { get; set; }
         public string? InvoiceNumber { get; set; }
 
-        // Items
+        // Items - ItemCount INT (çünkü biz kod tarafında hesaplıyoruz)
         public int ItemCount { get; set; }
         public List<OrderDetail>? OrderDetails { get; set; }
         public List<OrderDetail>? Items { get; set; }
