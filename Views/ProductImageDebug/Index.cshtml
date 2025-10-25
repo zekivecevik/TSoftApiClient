@@ -1,0 +1,206 @@
+@{
+    ViewData["Title"] = "Product Image Debug";
+}
+
+<div class="main-container">
+    <div class="section-header">
+        <h1 class="section-title">🔍 Product Image Debug</h1>
+        <button class="btn btn-primary" onclick="location.reload()">
+            🔄 Yeniden Test Et
+        </button>
+    </div>
+
+    <!-- Debug Logs -->
+    <div class="cards-container">
+        <h3 style="margin-bottom: 16px; font-size: 18px;">📋 Detaylı Analiz</h3>
+
+        <div style="background: var(--bg-main); border: 1px solid var(--border); border-radius: 12px; padding: 24px; font-family: 'Courier New', monospace; font-size: 14px; line-height: 1.8;">
+            @foreach (var log in (List<string>)ViewBag.Logs)
+            {
+                if (log.StartsWith("✅"))
+                {
+                    <div style="color: var(--success); font-weight: bold;">@log</div>
+                }
+                else if (log.StartsWith("❌") || log.StartsWith("💥"))
+                {
+                    <div style="color: var(--danger); font-weight: bold;">@log</div>
+                }
+                else if (log.StartsWith("⚠️"))
+                {
+                    <div style="color: var(--warning); font-weight: bold;">@log</div>
+                }
+                else if (log.StartsWith("💡"))
+                {
+                    <div style="color: #3B82F6; font-weight: bold; margin-top: 8px;">@log</div>
+                }
+                else if (log.Contains("━"))
+                {
+                    <div style="color: var(--text-secondary);">@log</div>
+                }
+                else if (log.StartsWith("  "))
+                {
+                    <div style="color: var(--text-secondary); margin-left: 20px;">@log</div>
+                }
+                else if (log.StartsWith("📦") || log.StartsWith("📸") || log.StartsWith("🌐") || log.StartsWith("📊") || log.StartsWith("🖼️") || log.StartsWith("📄"))
+                {
+                    <div style="color: var(--primary); font-weight: bold; margin-top: 12px;">@log</div>
+                }
+                else
+                {
+                    <div style="color: var(--text-primary);">@log</div>
+                }
+            }
+        </div>
+    </div>
+
+    <!-- Görsel Test (Eğer görsel varsa) -->
+    @if (ViewBag.FirstImage != null)
+    {
+        <div class="cards-container" style="margin-top: 24px;">
+            <h3 style="margin-bottom: 16px; font-size: 18px;">🖼️ Görsel Test</h3>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                @{
+                    var img = ViewBag.FirstImage;
+                    var urls = new List<(string Label, string Url)>
+                        {
+                        ("ImageUrl", img.ImageUrl),
+                        ("ThumbnailUrl", img.ThumbnailUrl),
+                        ("Image", img.Image),
+                        ("Thumbnail", img.Thumbnail)
+                        };
+                }
+
+                @foreach (var urlPair in urls)
+                {
+                    if (!string.IsNullOrEmpty(urlPair.Url))
+                    {
+                        <div style="background: var(--bg-main); border: 1px solid var(--border); border-radius: 12px; padding: 16px;">
+                            <div style="margin-bottom: 12px;">
+                                <strong style="color: var(--primary);">@urlPair.Label</strong>
+                                <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px; word-break: break-all;">
+                                    @urlPair.Url
+                                </div>
+                            </div>
+                            <div style="width: 100%; height: 200px; background: var(--bg-card); border-radius: 8px; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+                                <img src="@urlPair.Url"
+                                     alt="Test Image"
+                                     style="max-width: 100%; max-height: 100%; object-fit: contain;"
+                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                <div style="display: none; flex-direction: column; align-items: center; gap: 8px; color: var(--danger);">
+                                    <div style="font-size: 48px;">❌</div>
+                                    <div style="font-size: 14px;">Yüklenemedi</div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+
+            <div style="margin-top: 20px; padding: 16px; background: rgba(59, 130, 246, 0.1); border-left: 4px solid var(--info); border-radius: 8px;">
+                <strong style="color: var(--info);">💡 Görseller Yüklenmiyor mu?</strong>
+                <ul style="margin: 12px 0 0 20px; color: var(--text-secondary); line-height: 1.8;">
+                    <li>Tarayıcı konsolunu aç (F12) ve CORS hatası var mı kontrol et</li>
+                    <li>URL'ler doğru mu? (http/https, domain)</li>
+                    <li>Görseller harici bir CDN'de mi? (T-Soft sunucusu dışında)</li>
+                    <li>Tarayıcı Network sekmesinde isteği incele (404, 403, CORS?)</li>
+                </ul>
+            </div>
+        </div>
+    }
+
+    <!-- Full Product JSON -->
+    @if (ViewBag.ProductJson != null)
+    {
+        <div class="cards-container" style="margin-top: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h3 style="margin: 0; font-size: 18px;">📄 Tam Ürün JSON</h3>
+                <button class="btn btn-secondary" onclick="copyJson()">
+                    📋 Copy JSON
+                </button>
+            </div>
+
+            <div id="json-container" style="background: #1e1e1e; border: 1px solid var(--border); border-radius: 8px; padding: 20px; max-height: 500px; overflow-y: auto;">
+                <pre style="margin: 0; color: #d4d4d4; font-family: 'Consolas', 'Courier New', monospace; font-size: 13px; line-height: 1.6; white-space: pre-wrap; word-wrap: break-word;">@ViewBag.ProductJson</pre>
+            </div>
+        </div>
+    }
+
+    <!-- Manuel Test -->
+    <div class="cards-container" style="margin-top: 24px;">
+        <h3 style="margin-bottom: 16px; font-size: 18px;">🧪 Manuel Test</h3>
+
+        <div style="display: flex; gap: 12px; align-items: end;">
+            <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                <label class="form-label">Ürün Kodu</label>
+                <input type="text" id="productCodeInput" class="form-control" placeholder="PROD001">
+            </div>
+            <button class="btn btn-primary" onclick="testProduct()">
+                🔍 Test Et
+            </button>
+        </div>
+
+        <div id="testResult" style="margin-top: 16px;"></div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function copyJson() {
+            const jsonText = document.querySelector('#json-container pre').textContent;
+            navigator.clipboard.writeText(jsonText).then(() => {
+                alert('✅ JSON kopyalandı!');
+            }).catch(err => {
+                console.error('Copy failed:', err);
+                alert('❌ Kopyalama başarısız.');
+            });
+        }
+
+        async function testProduct() {
+            const code = document.getElementById('productCodeInput').value.trim();
+            if (!code) {
+                alert('❌ Ürün kodu girin!');
+                return;
+            }
+
+            const resultDiv = document.getElementById('testResult');
+            resultDiv.innerHTML = '<div style="padding: 12px; background: var(--bg-main); border-radius: 8px;">⏳ Yükleniyor...</div>';
+
+            try {
+                const response = await fetch(`/ProductImageDebug/TestProduct?code=${encodeURIComponent(code)}`);
+                const data = await response.json();
+
+                let html = `
+                    <div style="padding: 20px; background: var(--bg-main); border: 1px solid var(--border); border-radius: 12px;">
+                        <div style="margin-bottom: 16px;">
+                            <strong style="color: ${data.success ? 'var(--success)' : 'var(--danger)'};">
+                                ${data.success ? '✅' : '❌'} ${data.success ? 'Başarılı' : 'Başarısız'}
+                            </strong>
+                        </div>
+                        <div style="color: var(--text-secondary); margin-bottom: 8px;">
+                            Görsel Sayısı: <strong style="color: var(--text-primary);">${data.imageCount}</strong>
+                        </div>
+                `;
+
+                if (data.imageCount > 0) {
+                    html += '<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-top: 16px;">';
+                    data.images.slice(0, 4).forEach((img, i) => {
+                        const url = img.imageUrl || img.thumbnailUrl || img.image || img.thumbnail;
+                        html += `
+                            <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 12px;">
+                                <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 8px;">Görsel ${i + 1}</div>
+                                <img src="${url}" style="width: 100%; height: 150px; object-fit: cover; border-radius: 6px;" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'100\' height=\'100\'%3E%3Ctext x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%23999\'%3E❌%3C/text%3E%3C/svg%3E'">
+                            </div>
+                        `;
+                    });
+                    html += '</div>';
+                }
+
+                html += '</div>';
+                resultDiv.innerHTML = html;
+            } catch (err) {
+                resultDiv.innerHTML = `<div style="padding: 12px; background: rgba(239, 68, 68, 0.1); border: 1px solid var(--danger); border-radius: 8px; color: var(--danger);">❌ Hata: ${err.message}</div>`;
+            }
+        }
+    </script>
+}

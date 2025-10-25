@@ -260,6 +260,8 @@ namespace TSoftApiClient.Services
         /// Custom JSON converter that accepts both string and number for string properties
         /// Handles T-Soft's inconsistent API responses
         /// </summary>
+        // Services/TSoftApiService.cs içindeki FlexibleStringConverter sınıfını değiştir:
+
         private class FlexibleStringConverter : System.Text.Json.Serialization.JsonConverter<string>
         {
             public override string? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
@@ -270,7 +272,6 @@ namespace TSoftApiClient.Services
                 }
                 else if (reader.TokenType == JsonTokenType.Number)
                 {
-                    // Convert number to string
                     if (reader.TryGetInt64(out var longValue))
                         return longValue.ToString();
                     if (reader.TryGetDouble(out var doubleValue))
@@ -288,8 +289,22 @@ namespace TSoftApiClient.Services
                 {
                     return null;
                 }
+                else if (reader.TokenType == JsonTokenType.StartObject || reader.TokenType == JsonTokenType.StartArray)
+                {
+                    // Object veya Array geldiğinde skip et ve null dön
+                    reader.Skip();
+                    return null;
+                }
 
-                return reader.GetString();
+                // Fallback
+                try
+                {
+                    return reader.GetString();
+                }
+                catch
+                {
+                    return null;
+                }
             }
 
             public override void Write(Utf8JsonWriter writer, string? value, JsonSerializerOptions options)
