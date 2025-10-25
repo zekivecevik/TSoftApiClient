@@ -1,0 +1,301 @@
+@using TSoftApiClient.Models
+@{
+    ViewData["Title"] = "Dashboard";
+
+    // Helper functions
+    string FormatCurrency(decimal value)
+    {
+        if (value >= 1000000)
+            return $"₺{(value / 1000000m):N1}M";
+        if (value >= 1000)
+            return $"₺{(value / 1000m):N1}K";
+        return $"₺{value:N0}";
+    }
+
+    string FormatPercent(decimal value)
+    {
+        return $"{value:N0}%";
+    }
+}
+
+<div class="stats-bar">
+    <div class="stats-container" style="justify-content: center;">
+        <div class="stat-mini">
+            <div class="stat-icon purple">📦</div>
+            <div class="stat-content">
+                <span class="stat-label">Toplam Ürün</span>
+                <span class="stat-value-mini">@(ViewBag.TotalProducts ?? 0)</span>
+            </div>
+        </div>
+
+        <div class="stat-mini">
+            <div class="stat-icon green">📁</div>
+            <div class="stat-content">
+                <span class="stat-label">Kategoriler</span>
+                <span class="stat-value-mini">@(ViewBag.TotalCategories ?? 0)</span>
+            </div>
+        </div>
+
+        <div class="stat-mini">
+            <div class="stat-icon blue">🛒</div>
+            <div class="stat-content">
+                <span class="stat-label">Siparişler</span>
+                <span class="stat-value-mini">@(ViewBag.TotalOrders ?? 0)</span>
+            </div>
+        </div>
+
+        <div class="stat-mini">
+            <div class="stat-icon red">🟢</div>
+            <div class="stat-content">
+                <span class="stat-label">Aktif Ürünler</span>
+                <span class="stat-value-mini">@FormatPercent((decimal)(ViewBag.ActiveProductsPercent ?? 0))</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="page-container">
+    @if (!string.IsNullOrEmpty(ViewBag.Error))
+    {
+        <div class="alert alert-danger">
+            ❌ @ViewBag.Error
+        </div>
+    }
+
+    <div class="section-header">
+        <h1 class="section-title">📊 Dashboard</h1>
+    </div>
+
+    <!-- Dashboard Grid -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 24px; margin-bottom: 32px;">
+
+        <!-- Toplam Sipariş Değeri Card -->
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px; padding: 32px; color: white; position: relative; overflow: hidden;">
+            <div style="position: absolute; top: -20px; right: -20px; width: 150px; height: 150px; background: rgba(255,255,255,0.1); border-radius: 50%;"></div>
+            <div style="position: relative; z-index: 1;">
+                <div style="font-size: 14px; opacity: 0.9; margin-bottom: 8px;">Toplam Sipariş Değeri</div>
+                <div style="font-size: 48px; font-weight: 800; margin-bottom: 4px;">@FormatCurrency((decimal)(ViewBag.TotalRevenue ?? 0))</div>
+                <div style="font-size: 13px; opacity: 0.8;">@(ViewBag.TotalOrders ?? 0) sipariş</div>
+            </div>
+        </div>
+
+        <!-- Ortalama Sipariş Card -->
+        <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border-radius: 16px; padding: 32px; color: white; position: relative; overflow: hidden;">
+            <div style="position: absolute; top: -20px; right: -20px; width: 150px; height: 150px; background: rgba(255,255,255,0.1); border-radius: 50%;"></div>
+            <div style="position: relative; z-index: 1;">
+                <div style="font-size: 14px; opacity: 0.9; margin-bottom: 8px;">Ortalama Sipariş</div>
+                <div style="font-size: 48px; font-weight: 800; margin-bottom: 4px;">@FormatCurrency((decimal)(ViewBag.AverageOrderValue ?? 0))</div>
+                <div style="font-size: 13px; opacity: 0.8;">Sipariş başına</div>
+            </div>
+        </div>
+
+        <!-- Tamamlanma Oranı Card -->
+        <div style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); border-radius: 16px; padding: 32px; color: white; position: relative; overflow: hidden;">
+            <div style="position: absolute; top: -20px; right: -20px; width: 150px; height: 150px; background: rgba(255,255,255,0.1); border-radius: 50%;"></div>
+            <div style="position: relative; z-index: 1;">
+                <div style="font-size: 14px; opacity: 0.9; margin-bottom: 8px;">Tamamlanan Siparişler</div>
+                <div style="font-size: 48px; font-weight: 800; margin-bottom: 4px;">@FormatPercent((decimal)(ViewBag.CompletionRate ?? 0))</div>
+                <div style="font-size: 13px; opacity: 0.8;">Başarı oranı</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- İkinci Satır: Chart ve Listeler -->
+    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px; margin-bottom: 32px;">
+
+        <!-- Bu Hafta Aktivite -->
+        <div class="cards-container">
+            <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 24px; color: var(--text-primary);">📈 Son 7 Gün Sipariş Aktivitesi</h3>
+            <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 12px;">
+                @{
+                    var last7Days = (List<(string Day, int Count)>)(ViewBag.Last7Days ?? new List<(string, int)>());
+                    var maxCount = last7Days.Count > 0 ? last7Days.Max(d => d.Count) : 1;
+                    if (maxCount == 0) maxCount = 1; // Sıfıra bölme hatası önleme
+                }
+                @foreach (var day in last7Days)
+                {
+                    var height = maxCount > 0 ? (int)((day.Count / (double)maxCount) * 120.0) : 0;
+                    if (height < 10 && day.Count > 0) height = 10; // Minimum görünürlük
+
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                        <div style="width: 100%; height: 140px; display: flex; align-items: flex-end; justify-content: center;">
+                            <div style="width: 40px; height: @(height)px; background: linear-gradient(180deg, #667eea 0%, #764ba2 100%); border-radius: 8px 8px 0 0; transition: all 0.3s;"></div>
+                        </div>
+                        <span style="font-size: 12px; color: var(--text-secondary); font-weight: 600;">@day.Day</span>
+                        <span style="font-size: 14px; color: var(--text-primary); font-weight: 700;">@day.Count</span>
+                    </div>
+                }
+            </div>
+            @if (last7Days.Count == 0 || last7Days.All(d => d.Count == 0))
+            {
+                <div style="text-align: center; color: var(--text-secondary); margin-top: 20px; font-size: 14px;">
+                    Son 7 günde sipariş bulunmuyor
+                </div>
+            }
+        </div>
+
+        <!-- En Çok Satan Ürünler -->
+        <div class="cards-container">
+            <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 20px; color: var(--text-primary);">🔥 En Çok Satan Ürünler</h3>
+            @{
+                var topProductsRaw = ViewBag.TopProducts;
+                var colors = new[] { "#667eea", "#f093fb", "#4facfe", "#f5576c", "#764ba2" };
+            }
+
+            @if (topProductsRaw != null && ((IEnumerable<dynamic>)topProductsRaw).Any())
+            {
+                <div style="display: flex; flex-direction: column; gap: 16px;">
+                    @{
+                        int i = 0;
+                        foreach (var product in (IEnumerable<dynamic>)topProductsRaw)
+                        {
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--bg-main); border-radius: 8px; border-left: 4px solid @colors[i];">
+                                <span style="font-size: 14px; color: var(--text-primary); font-weight: 600;">@product.Name</span>
+                                <span style="font-size: 16px; color: @colors[i]; font-weight: 700;">@FormatCurrency((decimal)product.Value)</span>
+                            </div>
+                            i++;
+                            if (i >= colors.Length) break;
+                        }
+                    }
+                </div>
+            }
+            else
+            {
+                <div style="text-align: center; color: var(--text-secondary); padding: 20px; font-size: 14px;">
+                    Ürün verisi bulunamadı
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Üçüncü Satır: Metrikler -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-bottom: 32px;">
+
+        <!-- Pipeline (Sipariş Durumları) -->
+        <div class="cards-container">
+            <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 20px; color: var(--text-secondary);">📊 Sipariş Durumları</h3>
+            @{
+                var statusCounts = (Dictionary<string, (int Count, decimal Percent)>)(ViewBag.StatusCounts ?? new Dictionary<string, (int, decimal)>());
+            }
+
+            @if (statusCounts.Count > 0 && statusCounts.Values.Any(v => v.Count > 0))
+            {
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    @foreach (var status in statusCounts.Where(s => s.Value.Count > 0))
+                    {
+                        <div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                                <span style="font-size: 13px; color: var(--text-secondary);">@status.Key</span>
+                                <span style="font-size: 13px; color: var(--text-primary); font-weight: 700;">@status.Value.Count adet</span>
+                            </div>
+                            <div style="width: 100%; height: 6px; background: var(--bg-main); border-radius: 3px; overflow: hidden;">
+                                <div style="width: @(status.Value.Percent)%; height: 100%; background: linear-gradient(90deg, #667eea, #764ba2); transition: width 0.5s;"></div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div style="text-align: center; color: var(--text-secondary); padding: 20px; font-size: 14px;">
+                    Sipariş durumu verisi yok
+                </div>
+            }
+        </div>
+
+        <!-- Tamamlanma Oranı (Circular) -->
+        <div class="cards-container">
+            <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 20px; color: var(--text-secondary);">✅ Tamamlanma Oranı</h3>
+            @{
+                var completionRate = (decimal)(ViewBag.CompletionRate ?? 0);
+                var circumference = 282.7;
+                var offset = circumference - (circumference * (double)completionRate / 100.0);
+            }
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 16px;">
+                <div style="position: relative; width: 180px; height: 180px;">
+                    <svg viewBox="0 0 100 100" style="transform: rotate(-90deg);">
+                        <circle cx="50" cy="50" r="45" fill="none" stroke="var(--bg-main)" stroke-width="10" />
+                        <circle cx="50" cy="50" r="45" fill="none" stroke="url(#gradient)" stroke-width="10"
+                                stroke-dasharray="@circumference" stroke-dashoffset="@offset" stroke-linecap="round" />
+                        <defs>
+                            <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#667eea" />
+                                <stop offset="100%" style="stop-color:#764ba2" />
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
+                        <div style="font-size: 42px; font-weight: 800; color: var(--text-primary);">@completionRate.ToString("N0")%</div>
+                    </div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 4px;">Tamamlanan siparişler</div>
+                    <div style="font-size: 11px; color: var(--text-secondary); opacity: 0.7; font-style: italic; margin-top: 8px;">OrderStatusId = 3 olan siparişler</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ortalama Döngü Süresi -->
+        <div class="cards-container">
+            <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 20px; color: var(--text-secondary);">⏱️ Ortalama Tamamlanma Süresi</h3>
+            @{
+                var avgDays = (int)(ViewBag.AverageCycleDays ?? 0);
+            }
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: calc(100% - 60px);">
+                <div style="font-size: 72px; font-weight: 800; color: var(--text-primary); line-height: 1;">@avgDays</div>
+                <div style="font-size: 32px; font-weight: 700; color: var(--text-secondary); margin-top: -8px;">gün</div>
+                @if (avgDays > 0)
+                {
+                    <div style="margin-top: 24px; padding: 12px 24px; background: var(--bg-main); border-radius: 8px; text-align: center;">
+                        <span style="font-size: 13px; color: var(--text-secondary);">Sipariş tamamlanma süresi</span>
+                        <div style="font-size: 11px; color: var(--text-secondary); opacity: 0.7; font-style: italic; margin-top: 4px;">OrderDate'den bugüne ortalama</div>
+                    </div>
+                }
+                else
+                {
+                    <div style="margin-top: 24px; padding: 12px 24px; background: var(--bg-main); border-radius: 8px;">
+                        <span style="font-size: 13px; color: var(--text-secondary);">Veri yeterli değil</span>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Hızlı Eylemler -->
+    <div class="section-header" style="margin-top: 40px;">
+        <h2 class="section-title">⚡ Hızlı Eylemler</h2>
+    </div>
+
+    <div class="product-grid" style="margin-bottom: 32px;">
+        <a href="/Products/Create" class="product-card" style="text-decoration: none; cursor: pointer; transition: all 0.3s;">
+            <div style="font-size: 48px; margin-bottom: 16px;">📦</div>
+            <div class="product-name">Yeni Ürün Ekle</div>
+            <p style="color: var(--text-secondary); font-size: 14px;">Stokları güncel tutun</p>
+        </a>
+
+        <a href="/Orders" class="product-card" style="text-decoration: none; cursor: pointer; transition: all 0.3s;">
+            <div style="font-size: 48px; margin-bottom: 16px;">🛒</div>
+            <div class="product-name">Siparişleri Görüntüle</div>
+            <p style="color: var(--text-secondary); font-size: 14px;">Tüm siparişlere göz atın</p>
+        </a>
+
+        <a href="/Categories" class="product-card" style="text-decoration: none; cursor: pointer; transition: all 0.3s;">
+            <div style="font-size: 48px; margin-bottom: 16px;">📁</div>
+            <div class="product-name">Kategorileri Yönet</div>
+            <p style="color: var(--text-secondary); font-size: 14px;">Düzenli kategori yapısı</p>
+        </a>
+
+        <a href="/Test" class="product-card" style="text-decoration: none; cursor: pointer; transition: all 0.3s;">
+            <div style="font-size: 48px; margin-bottom: 16px;">🧪</div>
+            <div class="product-name">API Test</div>
+            <p style="color: var(--text-secondary); font-size: 14px;">Bağlantıyı kontrol edin</p>
+        </a>
+    </div>
+</div>
+
+<style>
+    .product-card:hover {
+        transform: translateY(-8px) scale(1.02);
+        box-shadow: 0 12px 32px rgba(124, 58, 237, 0.3);
+    }
+</style>

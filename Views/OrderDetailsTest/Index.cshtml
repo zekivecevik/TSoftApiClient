@@ -1,0 +1,122 @@
+@{
+    ViewData["Title"] = "Order Fields Analysis";
+}
+
+<div class="main-container">
+    <div class="section-header">
+        <h1 class="section-title">🔍 Order Fields Analysis</h1>
+        <button class="btn btn-primary" onclick="location.reload()">
+            🔄 Yeniden Test Et
+        </button>
+    </div>
+
+    <div class="cards-container">
+        <h3 style="margin-bottom: 16px; font-size: 18px;">📋 Analiz Sonuçları</h3>
+
+        <div style="background: var(--bg-main); border: 1px solid var(--border); border-radius: 12px; padding: 24px; font-family: 'Courier New', monospace; font-size: 14px; line-height: 1.8;">
+            @foreach (var log in (List<string>)ViewBag.Logs)
+            {
+                if (log.StartsWith("✅✅✅") || log.StartsWith("🎉"))
+                {
+                    <div style="color: var(--success); font-weight: bold; font-size: 16px;">@log</div>
+                }
+                else if (log.StartsWith("✅"))
+                {
+                    <div style="color: var(--success);">@log</div>
+                }
+                else if (log.StartsWith("❌") || log.StartsWith("💥"))
+                {
+                    <div style="color: var(--danger); font-weight: bold;">@log</div>
+                }
+                else if (log.StartsWith("⚠️"))
+                {
+                    <div style="color: var(--warning); font-weight: bold;">@log</div>
+                }
+                else if (log.StartsWith("💡"))
+                {
+                    <div style="color: #3B82F6; font-weight: bold;">@log</div>
+                }
+                else if (log.Contains("━"))
+                {
+                    <div style="color: var(--text-secondary);">@log</div>
+                }
+                else if (log.StartsWith("   "))
+                {
+                    <div style="color: var(--text-secondary); margin-left: 20px;">@log</div>
+                }
+                else
+                {
+                    <div style="color: var(--text-primary);">@log</div>
+                }
+            }
+        </div>
+    </div>
+
+    @if (ViewBag.OrderJson != null)
+    {
+        <div class="cards-container" style="margin-top: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h3 style="margin: 0; font-size: 18px;">📄 Full Order JSON</h3>
+                <button class="btn btn-secondary" onclick="copyJson()">
+                    📋 Copy JSON
+                </button>
+            </div>
+
+            <div id="json-container" style="background: #1e1e1e; border: 1px solid var(--border); border-radius: 8px; padding: 20px; max-height: 600px; overflow-y: auto;">
+                <pre style="margin: 0; color: #d4d4d4; font-family: 'Consolas', 'Courier New', monospace; font-size: 13px; line-height: 1.6; white-space: pre-wrap; word-wrap: break-word;">@ViewBag.OrderJson</pre>
+            </div>
+        </div>
+    }
+
+    @if (ViewBag.HasAllFields == true)
+    {
+        <div style="margin-top: 24px; padding: 20px; background: rgba(16, 185, 129, 0.1); border-left: 4px solid var(--success); border-radius: 8px;">
+            <h4 style="margin: 0 0 12px 0; color: var(--success); font-size: 16px;">🎉 Harika Haber!</h4>
+            <div style="color: var(--text-secondary); line-height: 1.8;">
+                <strong style="color: var(--text-primary);">Tüm field'lar ana sipariş listesinde mevcut!</strong><br><br>
+
+                ✅ ItemCount: Zaten var<br>
+                ✅ City/ShippingCity: Zaten var<br>
+                ✅ SupplyStatus: Zaten var<br><br>
+
+                <strong>Yapman gereken:</strong><br>
+                Hiçbir şey! Order details API'sine gerek yok.<br>
+                Sadece ana sipariş field'larını kullan.
+            </div>
+        </div>
+    }
+    else
+    {
+        <div style="margin-top: 24px; padding: 20px; background: rgba(239, 68, 68, 0.1); border-left: 4px solid var(--danger); border-radius: 8px;">
+            <h4 style="margin: 0 0 12px 0; color: var(--danger); font-size: 16px;">⚠️ Bazı Field'lar Eksik</h4>
+            <div style="color: var(--text-secondary); line-height: 1.8;">
+                <strong style="color: var(--text-primary);">Yukarıdaki JSON'da şunları ara:</strong><br><br>
+
+                🔍 <strong>Ürün Sayısı:</strong><br>
+                &nbsp;&nbsp;&nbsp;→ "ItemCount", "item_count", "OrderItemCount", "TotalItems"<br><br>
+
+                🔍 <strong>Şehir:</strong><br>
+                &nbsp;&nbsp;&nbsp;→ "City", "city", "ShippingCity", "DeliveryCity", "InvoiceCity"<br><br>
+
+                🔍 <strong>Paketleme:</strong><br>
+                &nbsp;&nbsp;&nbsp;→ "SupplyStatus", "supply_status", "PackingStatus", "PreparationStatus"<br><br>
+
+                <strong>JSON'u bana gönder, ben alternatif field'ları arayacağım!</strong>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        function copyJson() {
+            const jsonText = document.querySelector('#json-container pre').textContent;
+            navigator.clipboard.writeText(jsonText).then(() => {
+                alert('✅ JSON kopyalandı!');
+            }).catch(err => {
+                console.error('Copy failed:', err);
+                alert('❌ Kopyalama başarısız. Manuel olarak seç ve CTRL+C yap.');
+            });
+        }
+    </script>
+}

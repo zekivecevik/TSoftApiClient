@@ -1,0 +1,243 @@
+@model List<Product>
+@{
+    ViewData["Title"] = "Ürünler";
+}
+
+<!-- Stats Bar -->
+<div class="stats-bar">
+    <div class="stats-container">
+        <div class="stat-mini">
+            <div class="stat-icon purple">📦</div>
+            <div class="stat-content">
+                <div class="stat-label">Toplam Ürün</div>
+                <div class="stat-value-mini">@Model.Count</div>
+            </div>
+        </div>
+
+        <div class="stat-mini">
+            <div class="stat-icon green">✅</div>
+            <div class="stat-content">
+                <div class="stat-label">Aktif Ürünler</div>
+                <div class="stat-value-mini">@Model.Count(p => p.IsActive == "1")</div>
+            </div>
+        </div>
+
+        <div class="stat-mini">
+            <div class="stat-icon blue">💰</div>
+            <div class="stat-content">
+                <div class="stat-label">Toplam Stok</div>
+                <div class="stat-value-mini">@Model.Sum(p => int.TryParse(p.Stock, out var stock) ? stock : 0)</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Container -->
+<div class="main-container">
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">
+            ✅ @TempData["Success"]
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(ViewBag.Error))
+    {
+        <div class="alert alert-danger">
+            ❌ @ViewBag.Error
+        </div>
+    }
+
+    <div class="section-header">
+        <h1 class="section-title">📦 Ürünler</h1>
+        <div class="section-actions">
+            <a href="/Products/Create" class="btn btn-primary">
+                ➕ Yeni Ürün Ekle
+            </a>
+        </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+        <div class="toolbar-left">
+            <div class="search-wrapper">
+                <span class="search-icon">🔍</span>
+                <input type="search" 
+                       id="search-input" 
+                       class="search-input" 
+                       placeholder="Ürün ara..." 
+                       onkeyup="filterProducts()">
+            </div>
+        </div>
+        <div class="toolbar-right">
+            <button class="btn btn-secondary" onclick="toggleView('grid')" id="grid-view-btn">
+                ⊞ Kart Görünümü
+            </button>
+            <button class="btn btn-secondary" onclick="toggleView('list')" id="list-view-btn">
+                ☰ Liste Görünümü
+            </button>
+        </div>
+    </div>
+
+    @if (Model.Count > 0)
+    {
+        <!-- Grid View -->
+        <div id="grid-view" class="cards-container">
+            <div class="product-grid" id="product-grid">
+                @foreach (var product in Model)
+                {
+                    <div class="product-card" data-name="@product.ProductName?.ToLower()" data-code="@product.ProductCode?.ToLower()">
+                        <div class="product-header">
+                            <span class="product-code">@product.ProductCode</span>
+                            @if (product.IsActive == "1")
+                            {
+                                <span class="badge badge-success">Aktif</span>
+                            }
+                            else
+                            {
+                                <span class="badge badge-danger">Pasif</span>
+                            }
+                        </div>
+                        
+                        <div class="product-name">@product.ProductName</div>
+                        
+                        <div class="product-info">
+                            <div class="product-info-row">
+                                <span class="info-label">Kategori:</span>
+                                <span class="info-value">@product.DefaultCategoryCode</span>
+                            </div>
+                            <div class="product-info-row">
+                                <span class="info-label">Stok:</span>
+                                <span class="info-value">@product.Stock adet</span>
+                            </div>
+                            @if (!string.IsNullOrEmpty(product.Brand))
+                            {
+                                <div class="product-info-row">
+                                    <span class="info-label">Marka:</span>
+                                    <span class="info-value">@product.Brand</span>
+                                </div>
+                            }
+                        </div>
+                        
+                        <div class="product-price">
+                            @(product.SellingPrice ?? product.Price) TL
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- List View (Hidden by default) -->
+        <div id="list-view" style="display: none;">
+            <div class="table-container">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Ürün Kodu</th>
+                            <th>Ürün Adı</th>
+                            <th>Kategori</th>
+                            <th>Marka</th>
+                            <th>Fiyat</th>
+                            <th>Stok</th>
+                            <th>Durum</th>
+                        </tr>
+                    </thead>
+                    <tbody id="product-table">
+                        @foreach (var product in Model)
+                        {
+                            <tr data-name="@product.ProductName?.ToLower()" data-code="@product.ProductCode?.ToLower()">
+                                <td><span class="badge badge-info">@product.ProductCode</span></td>
+                                <td>@product.ProductName</td>
+                                <td>@product.DefaultCategoryCode</td>
+                                <td>@(product.Brand ?? "-")</td>
+                                <td><strong style="color: var(--success);">@(product.SellingPrice ?? product.Price) TL</strong></td>
+                                <td>@product.Stock adet</td>
+                                <td>
+                                    @if (product.IsActive == "1")
+                                    {
+                                        <span class="badge badge-success">Aktif</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-danger">Pasif</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="cards-container">
+            <div class="empty-state">
+                <h3>Henüz ürün bulunmuyor</h3>
+                <p>İlk ürünü ekleyerek başlayın</p>
+                <a href="/Products/Create" class="btn btn-primary" style="margin-top: 16px;">
+                    ➕ Ürün Ekle
+                </a>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+<script>
+    function filterProducts() {
+        const searchTerm = document.getElementById('search-input').value.toLowerCase();
+        const gridView = document.getElementById('grid-view').style.display !== 'none';
+        
+        if (gridView) {
+            const cards = document.querySelectorAll('.product-card');
+            cards.forEach(card => {
+                const name = card.getAttribute('data-name') || '';
+                const code = card.getAttribute('data-code') || '';
+                if (name.includes(searchTerm) || code.includes(searchTerm)) {
+                    card.style.display = '';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        } else {
+            const rows = document.querySelectorAll('#product-table tr');
+            rows.forEach(row => {
+                const name = row.getAttribute('data-name') || '';
+                const code = row.getAttribute('data-code') || '';
+                if (name.includes(searchTerm) || code.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+    }
+
+    function toggleView(view) {
+        const gridView = document.getElementById('grid-view');
+        const listView = document.getElementById('list-view');
+        const gridBtn = document.getElementById('grid-view-btn');
+        const listBtn = document.getElementById('list-view-btn');
+
+        if (view === 'grid') {
+            gridView.style.display = '';
+            listView.style.display = 'none';
+            gridBtn.classList.add('btn-primary');
+            gridBtn.classList.remove('btn-secondary');
+            listBtn.classList.add('btn-secondary');
+            listBtn.classList.remove('btn-primary');
+        } else {
+            gridView.style.display = 'none';
+            listView.style.display = '';
+            listBtn.classList.add('btn-primary');
+            listBtn.classList.remove('btn-secondary');
+            gridBtn.classList.add('btn-secondary');
+            gridBtn.classList.remove('btn-primary');
+        }
+    }
+
+    // Initial state
+    toggleView('grid');
+</script>
+}

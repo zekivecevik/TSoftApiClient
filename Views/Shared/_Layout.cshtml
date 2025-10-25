@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - T-Soft ERP</title>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div style="display: flex; align-items: center; gap: 16px; flex: 1;">
+                <div class="brand-icon">📦</div>
+                <div class="brand-info">
+                    <h2 class="brand-title">T-Soft ERP</h2>
+                    <p class="brand-subtitle">E-Ticaret Yönetimi</p>
+                </div>
+            </div>
+            <button class="sidebar-close" onclick="toggleSidebar()" title="Kapat">✕</button>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="/" class="nav-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Home" ? "active" : "")">
+                <span class="nav-icon">📊</span>
+                <span class="nav-text">Dashboard</span>
+            </a>
+            <a href="/Products" class="nav-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "ProductsMvc" || ViewContext.RouteData.Values["Controller"]?.ToString() == "Products" ? "active" : "")">
+                <span class="nav-icon">📦</span>
+                <span class="nav-text">Ürünler</span>
+            </a>
+            <a href="/Categories" class="nav-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "CategoriesMvc" || ViewContext.RouteData.Values["Controller"]?.ToString() == "Categories" ? "active" : "")">
+                <span class="nav-icon">📁</span>
+                <span class="nav-text">Kategoriler</span>
+            </a>
+            <a href="/Orders" class="nav-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "OrdersMvc" || ViewContext.RouteData.Values["Controller"]?.ToString() == "Orders" ? "active" : "")">
+                <span class="nav-icon">🛒</span>
+                <span class="nav-text">Siparişler</span>
+            </a>
+            <a href="/Test" class="nav-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Test" ? "active" : "")">
+                <span class="nav-icon">🧪</span>
+                <span class="nav-text">API Test</span>
+            </a>
+            <a href="/api/docs" target="_blank" class="nav-item">
+                <span class="nav-icon">📡</span>
+                <span class="nav-text">API Docs</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <button class="btn btn-primary" onclick="location.reload()" title="Yenile" style="width: 100%; justify-content: center;">
+                <span>🔄</span>
+                <span>Yenile</span>
+            </button>
+            <div class="footer-version">
+                <div class="version-number">v1.0.0</div>
+                <div>T-Soft API Connected</div>
+            </div>
+        </div>
+    </aside>
+
+    <div class="topbar">
+        <button class="menu-toggle" onclick="toggleSidebar()" id="menuToggle">☰</button>
+        <div class="topbar-brand">
+            <div class="brand-icon">📦</div>
+            <span>T-Soft ERP</span>
+        </div>
+        <button class="btn-icon" onclick="location.reload()">🔄</button>
+    </div>
+
+    <main class="main-content">
+        <button class="sidebar-toggle-desktop" onclick="toggleSidebar()" title="Menüyü Aç/Kapat">☰</button>
+        @RenderBody()
+    </main>
+
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('active');
+
+            // Desktop'ta body'ye class ekle
+            if (window.innerWidth > 768) {
+                document.body.classList.toggle('sidebar-collapsed');
+            }
+        }
+
+        document.addEventListener('click', function(event) {
+            const sidebar = document.getElementById('sidebar');
+            const menuToggle = document.getElementById('menuToggle');
+
+            if (window.innerWidth <= 768 &&
+                sidebar.classList.contains('active') &&
+                !sidebar.contains(event.target) &&
+                !menuToggle.contains(event.target)) {
+                sidebar.classList.remove('active');
+            }
+        });
+
+        document.querySelectorAll('.sidebar .nav-item').forEach(item => {
+            item.addEventListener('click', function() {
+                if (window.innerWidth <= 768) {
+                    setTimeout(() => {
+                        document.getElementById('sidebar').classList.remove('active');
+                    }, 100);
+                }
+            });
+        });
+    </script>
+
+    <style>
+        .sidebar-close {
+            display: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-secondary);
+            font-size: 20px;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+            .sidebar-close:hover {
+                background: rgba(239, 68, 68, 0.2);
+                color: var(--danger);
+                border-color: var(--danger);
+            }
+
+        /* Desktop toggle button */
+        .sidebar-toggle-desktop {
+            position: fixed;
+            left: 280px;
+            top: 16px;
+            width: 40px;
+            height: 40px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 999;
+            transition: all 0.3s;
+            color: var(--text-secondary);
+            font-size: 18px;
+        }
+
+            .sidebar-toggle-desktop:hover {
+                background: var(--primary);
+                color: white;
+                border-color: var(--primary);
+            }
+
+        body.sidebar-collapsed .sidebar {
+            transform: translateX(-280px);
+        }
+
+        body.sidebar-collapsed .main-content {
+            margin-left: 0;
+            width: 100%;
+        }
+
+        body.sidebar-collapsed .sidebar-toggle-desktop {
+            left: 0;
+        }
+    </style>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
